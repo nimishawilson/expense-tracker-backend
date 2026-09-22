@@ -1,0 +1,227 @@
+### Expense Tracker Backend — User Management API
+### Requires the VS Code "REST Client" extension (humao.rest-client).
+### Click "Send Request" above each block. Run them top to bottom —
+### the login request captures a token that later requests reuse.
+### Make sure the server is running first: npm run start:dev
+
+@baseUrl = http://localhost:3001
+@contentType = application/json
+
+########################################
+# AUTH — POST /auth/register
+########################################
+
+### Register — success (expect 201, no password in response)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "secret1",
+  "confirmPassword": "secret1"
+}
+
+### Register — duplicate email (expect 409 Conflict)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "secret1",
+  "confirmPassword": "secret1"
+}
+
+### Register — invalid name, contains digits (expect 400)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Jane123",
+  "email": "jane2@example.com",
+  "password": "secret1",
+  "confirmPassword": "secret1"
+}
+
+### Register — password too short (expect 400)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Jane Doe",
+  "email": "jane3@example.com",
+  "password": "abc",
+  "confirmPassword": "abc"
+}
+
+### Register — confirmPassword mismatch (expect 400)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Jane Doe",
+  "email": "jane4@example.com",
+  "password": "secret1",
+  "confirmPassword": "different"
+}
+
+### Register — extra/unknown field rejected by whitelist (expect 400)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Jane Doe",
+  "email": "jane5@example.com",
+  "password": "secret1",
+  "confirmPassword": "secret1",
+  "role": "admin"
+}
+
+########################################
+# AUTH — POST /auth/login
+########################################
+
+### Login — wrong password (expect 401)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "jane@example.com",
+  "password": "wrongpassword"
+}
+
+### Login — unknown email (expect 401, same generic message)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "doesnotexist@example.com",
+  "password": "secret1"
+}
+
+### Login — success (expect 200, returns accessToken + user)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "nim@example.com",
+  "password": "secret1"
+}
+
+###
+
+@authToken = {{login.response.body.$.accessToken}}
+
+########################################
+# USERS — GET /users/me
+########################################
+
+### Get profile — no token (expect 401)
+GET {{baseUrl}}/users/me
+
+### Get profile — invalid/garbage token (expect 401)
+GET {{baseUrl}}/users/me
+Authorization: Bearer this.is.not.a.valid.token
+
+### Get profile — valid token (expect 200, includes defaultCurrency/timeZone)
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{authToken}}
+
+########################################
+# USERS — PATCH /users/me
+########################################
+
+### Update profile — name + preferences (expect 200, updated fields returned)
+PATCH {{baseUrl}}/users/me
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Jane Q Doe",
+  "defaultCurrency": "INR",
+  "timeZone": "Asia/Kolkata"
+}
+
+### Update profile — partial update, name only (expect 200)
+PATCH {{baseUrl}}/users/me
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Jane Doe"
+}
+
+### Update profile — invalid currency code (expect 400)
+PATCH {{baseUrl}}/users/me
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "defaultCurrency": "rupees"
+}
+
+### Update profile — attempt to change email (expect 400, email is read-only)
+PATCH {{baseUrl}}/users/me
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "hacker@example.com"
+}
+
+########################################
+# USERS — PATCH /users/me/password
+########################################
+
+### Change password — wrong current password (expect 401)
+PATCH {{baseUrl}}/users/me/password
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "currentPassword": "wrongone",
+  "newPassword": "newsecret1",
+  "confirmNewPassword": "newsecret1"
+}
+
+### Change password — confirm mismatch (expect 400)
+PATCH {{baseUrl}}/users/me/password
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "currentPassword": "secret1",
+  "newPassword": "newsecret1",
+  "confirmNewPassword": "different"
+}
+
+### Change password — success (expect 200, success message)
+PATCH {{baseUrl}}/users/me/password
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "currentPassword": "secret1",
+  "newPassword": "newsecret1",
+  "confirmNewPassword": "newsecret1"
+}
+
+### Login again with the NEW password to confirm the change took effect (expect 200)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "nim@example.com",
+  "password": "newsecret1"
+}
+
+### Old password should now fail (expect 401)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "nim@example.com",
+  "password": "secret1"
+}
