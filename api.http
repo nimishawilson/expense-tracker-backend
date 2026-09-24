@@ -4,7 +4,7 @@
 ### the login request captures a token that later requests reuse.
 ### Make sure the server is running first: npm run start:dev
 
-@baseUrl = http://localhost:3001
+@baseUrl = http://localhost:3000
 @contentType = application/json
 
 ########################################

@@ -1,6 +1,12 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class UpdateProfileDto {
+  @ApiPropertyOptional({
+    example: 'Jane Doe',
+    description: 'Full name, letters and spaces only',
+    minLength: 2,
+  })
   @IsOptional()
   @IsString()
   @MinLength(2)
@@ -9,6 +15,10 @@ export class UpdateProfileDto {
   })
   name?: string;
 
+  @ApiPropertyOptional({
+    example: 'EUR',
+    description: '3-letter ISO currency code',
+  })
   @IsOptional()
   @IsString()
   @Matches(/^[A-Z]{3}$/, {
@@ -16,6 +26,10 @@ export class UpdateProfileDto {
   })
   defaultCurrency?: string;
 
+  @ApiPropertyOptional({
+    example: 'Europe/London',
+    description: 'IANA time zone identifier',
+  })
   @IsOptional()
   @IsString()
   @MinLength(1)
