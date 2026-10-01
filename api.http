@@ -113,6 +113,7 @@ Content-Type: {{contentType}}
 ###
 
 @authToken = {{login.response.body.$.accessToken}}
+@authUserId = {{login.response.body.$.user.id}}
 
 ########################################
 # USERS — GET /users/me
@@ -225,3 +226,297 @@ Content-Type: {{contentType}}
   "email": "nim@example.com",
   "password": "secret1"
 }
+
+########################################
+# Second user, used below as a split participant
+########################################
+
+### Register second user — Bob (expect 201)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Bob Smith",
+  "email": "bob@example.com",
+  "password": "secret1",
+  "confirmPassword": "secret1"
+}
+
+### Login as Bob (expect 200)
+# @name loginBob
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "bob@example.com",
+  "password": "secret1"
+}
+
+###
+
+@bobToken = {{loginBob.response.body.$.accessToken}}
+@bobId = {{loginBob.response.body.$.user.id}}
+
+########################################
+# CATEGORIES — POST /categories
+########################################
+
+### Create custom category (expect 201)
+# @name createCategory
+POST {{baseUrl}}/categories
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Hobbies",
+  "icon": "🎨"
+}
+
+###
+
+@categoryId = {{createCategory.response.body.$.id}}
+
+### Create category — duplicate name for the same user (expect 409)
+POST {{baseUrl}}/categories
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Hobbies"
+}
+
+### Create category — missing name (expect 400)
+POST {{baseUrl}}/categories
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "icon": "🎨"
+}
+
+########################################
+# CATEGORIES — GET /categories
+########################################
+
+### List categories — defaults + own custom (expect 200)
+GET {{baseUrl}}/categories
+Authorization: Bearer {{authToken}}
+
+### Get a single default category (expect 200) — replace :id with one from the list above
+GET {{baseUrl}}/categories/1
+Authorization: Bearer {{authToken}}
+
+### Get another user's custom category (expect 404, not visible)
+GET {{baseUrl}}/categories/{{categoryId}}
+Authorization: Bearer {{bobToken}}
+
+########################################
+# CATEGORIES — PATCH /categories/:id
+########################################
+
+### Update own custom category (expect 200)
+PATCH {{baseUrl}}/categories/{{categoryId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Hobbies & Crafts"
+}
+
+### Update a default category (expect 403, defaults are immutable)
+PATCH {{baseUrl}}/categories/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Renamed Default"
+}
+
+### Update another user's custom category (expect 404, not visible)
+PATCH {{baseUrl}}/categories/{{categoryId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{bobToken}}
+
+{
+  "name": "Hijacked"
+}
+
+########################################
+# EXPENSES — POST /expenses
+########################################
+
+### Create a personal expense, no split (expect 201)
+# @name createPersonalExpense
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 24.50,
+  "description": "Solo lunch",
+  "date": "2026-09-20T00:00:00.000Z",
+  "categoryId": {{categoryId}}
+}
+
+###
+
+@personalExpenseId = {{createPersonalExpense.response.body.$.id}}
+
+### Create expense — missing categoryId (expect 400, category is required)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 24.50,
+  "description": "Solo lunch",
+  "date": "2026-09-20T00:00:00.000Z"
+}
+
+### Create an EQUAL split expense with Bob (expect 201, shares split 50/50)
+# @name createEqualSplitExpense
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 40.00,
+  "description": "Team lunch",
+  "date": "2026-09-20T00:00:00.000Z",
+  "categoryId": {{categoryId}},
+  "splitType": "EQUAL",
+  "participants": [
+    { "userId": {{authUserId}} },
+    { "userId": {{bobId}} }
+  ]
+}
+
+### Create a PERCENTAGE split expense (expect 201, 60/40)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 100.00,
+  "description": "Groceries run",
+  "date": "2026-09-21T00:00:00.000Z",
+  "categoryId": {{categoryId}},
+  "paidById": {{bobId}},
+  "splitType": "PERCENTAGE",
+  "participants": [
+    { "userId": {{authUserId}}, "value": 60 },
+    { "userId": {{bobId}}, "value": 40 }
+  ]
+}
+
+### Create an EXACT split expense with amounts that don't sum to the total (expect 400)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 50.00,
+  "description": "Broken exact split",
+  "date": "2026-09-21T00:00:00.000Z",
+  "categoryId": {{categoryId}},
+  "splitType": "EXACT",
+  "participants": [
+    { "userId": {{authUserId}}, "value": 20 },
+    { "userId": {{bobId}}, "value": 20 }
+  ]
+}
+
+### Create a SHARES split expense with an unresolvable participant (expect 400)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 90.00,
+  "description": "Trip supplies",
+  "date": "2026-09-22T00:00:00.000Z",
+  "categoryId": {{categoryId}},
+  "splitType": "SHARES",
+  "participants": [
+    { "userId": 999999, "value": 1 },
+    { "userId": {{bobId}}, "value": 2 }
+  ]
+}
+
+########################################
+# EXPENSES — GET /expenses
+########################################
+
+### List my expenses (expect 200, includes both personal and split expenses)
+GET {{baseUrl}}/expenses
+Authorization: Bearer {{authToken}}
+
+### List with filters — category + date range + pagination (expect 200)
+GET {{baseUrl}}/expenses?categoryId={{categoryId}}&fromDate=2026-09-01T00:00:00.000Z&toDate=2026-09-30T23:59:59.000Z&page=1&limit=10
+Authorization: Bearer {{authToken}}
+
+### List Bob's expenses — should include the shared expense as a participant (expect 200)
+GET {{baseUrl}}/expenses
+Authorization: Bearer {{bobToken}}
+
+########################################
+# EXPENSES — GET /expenses/:id
+########################################
+
+### Get the split expense as owner (expect 200)
+GET {{baseUrl}}/expenses/{{createEqualSplitExpense.response.body.$.id}}
+Authorization: Bearer {{authToken}}
+
+### Get the split expense as Bob, the participant (expect 200)
+GET {{baseUrl}}/expenses/{{createEqualSplitExpense.response.body.$.id}}
+Authorization: Bearer {{bobToken}}
+
+### Get the personal (unshared) expense as Bob, an unrelated user (expect 404)
+GET {{baseUrl}}/expenses/{{personalExpenseId}}
+Authorization: Bearer {{bobToken}}
+
+########################################
+# EXPENSES — PATCH /expenses/:id
+########################################
+
+### Update the split expense's amount as owner (expect 200, shares rescale proportionally)
+PATCH {{baseUrl}}/expenses/{{createEqualSplitExpense.response.body.$.id}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 60.00
+}
+
+### Update as Bob, a participant but not the owner (expect 403)
+PATCH {{baseUrl}}/expenses/{{createEqualSplitExpense.response.body.$.id}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{bobToken}}
+
+{
+  "description": "Hijacked description"
+}
+
+########################################
+# EXPENSES — DELETE /expenses/:id
+########################################
+
+### Delete the personal expense as owner (expect 200)
+DELETE {{baseUrl}}/expenses/{{personalExpenseId}}
+Authorization: Bearer {{authToken}}
+
+### Re-fetch the deleted expense (expect 404)
+GET {{baseUrl}}/expenses/{{personalExpenseId}}
+Authorization: Bearer {{authToken}}
+
+########################################
+# CATEGORIES — DELETE /categories/:id
+########################################
+
+### Delete a category still referenced by an expense (expect 409)
+DELETE {{baseUrl}}/categories/{{categoryId}}
+Authorization: Bearer {{authToken}}
+
+### Delete a default category (expect 403)
+DELETE {{baseUrl}}/categories/1
+Authorization: Bearer {{authToken}}

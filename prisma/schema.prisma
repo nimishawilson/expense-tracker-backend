@@ -29,4 +29,99 @@ model User {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
+
+  categories Category[]
+
+  ownedExpenses Expense[] @relation("ExpenseOwner")
+
+  paidExpenses Expense[] @relation("ExpensePaidBy")
+
+  expenseShares ExpenseParticipant[]
+}
+
+enum SplitType {
+  EQUAL
+  PERCENTAGE
+  EXACT
+  SHARES
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  icon String?
+
+  isDefault Boolean @default(false)
+
+  userId Int?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expenses Expense[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Expense {
+  id Int @id @default(autoincrement())
+
+  amount Decimal @db.Decimal(12, 2)
+
+  description String
+
+  date DateTime
+
+  categoryId Int
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  ownerId Int
+
+  owner User @relation("ExpenseOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  paidById Int
+
+  paidBy User @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Restrict)
+
+  splitType SplitType?
+
+  participants ExpenseParticipant[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([categoryId])
+  @@index([date])
+}
+
+model ExpenseParticipant {
+  id Int @id @default(autoincrement())
+
+  expenseId Int
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  userId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  shareAmount Decimal @db.Decimal(12, 2)
+
+  inputValue Decimal? @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([expenseId, userId])
+  @@index([userId])
 }

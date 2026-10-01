@@ -7,6 +7,12 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    // ts-node can't resolve this project's nodenext-style generated Prisma
+    // client at runtime (its internal imports use .js extensions that only
+    // resolve to the sibling .ts files via tsc's nodenext resolution), so the
+    // seed is run from the tsc-compiled output instead. Prisma spawns this
+    // command without a shell, so the build+run chain lives in an npm script.
+    seed: "npm run db:seed",
   },
   datasource: {
     url: process.env["DATABASE_URL"],
