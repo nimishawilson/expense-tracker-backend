@@ -520,3 +520,107 @@ Authorization: Bearer {{authToken}}
 ### Delete a default category (expect 403)
 DELETE {{baseUrl}}/categories/1
 Authorization: Bearer {{authToken}}
+
+########################################
+# BALANCES — GET /balances (before settling up)
+########################################
+
+### Balances for me — should show Bob owing me from the EQUAL split expense (expect 200)
+GET {{baseUrl}}/balances
+Authorization: Bearer {{authToken}}
+
+### Balances for Bob — should show the mirrored negative net (expect 200)
+GET {{baseUrl}}/balances
+Authorization: Bearer {{bobToken}}
+
+########################################
+# SETTLEMENTS — POST /settlements
+########################################
+
+### Record a settlement as the fromUser party, Bob paying me back (expect 201)
+# @name createSettlement
+POST {{baseUrl}}/settlements
+Content-Type: {{contentType}}
+Authorization: Bearer {{bobToken}}
+
+{
+  "fromUserId": {{bobId}},
+  "toUserId": {{authUserId}},
+  "amount": 10.00,
+  "note": "Paid back via UPI"
+}
+
+### Record a settlement as the toUser party instead (expect 201)
+POST {{baseUrl}}/settlements
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "fromUserId": {{bobId}},
+  "toUserId": {{authUserId}},
+  "amount": 5.00
+}
+
+### Record a settlement between two users, neither of which is me (expect 403)
+POST {{baseUrl}}/settlements
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "fromUserId": {{bobId}},
+  "toUserId": 999999,
+  "amount": 5.00
+}
+
+### Record a settlement with fromUserId === toUserId (expect 400)
+POST {{baseUrl}}/settlements
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "fromUserId": {{authUserId}},
+  "toUserId": {{authUserId}},
+  "amount": 5.00
+}
+
+### Record a settlement with a nonexistent toUserId (expect 404)
+POST {{baseUrl}}/settlements
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "fromUserId": {{authUserId}},
+  "toUserId": 999999,
+  "amount": 5.00
+}
+
+### Record a settlement with a negative amount (expect 400)
+POST {{baseUrl}}/settlements
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "fromUserId": {{bobId}},
+  "toUserId": {{authUserId}},
+  "amount": -5.00
+}
+
+########################################
+# SETTLEMENTS — GET /settlements
+########################################
+
+### List my settlements — both directions included (expect 200)
+GET {{baseUrl}}/settlements
+Authorization: Bearer {{authToken}}
+
+### List settlements filtered to Bob as counterpart (expect 200)
+GET {{baseUrl}}/settlements?counterpartUserId={{bobId}}
+Authorization: Bearer {{authToken}}
+
+########################################
+# BALANCES — GET /balances (after settling up)
+########################################
+
+### Balances for me — net should have moved toward zero by the settled amount (expect 200)
+GET {{baseUrl}}/balances
+Authorization: Bearer {{authToken}}
