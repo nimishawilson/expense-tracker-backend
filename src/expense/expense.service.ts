@@ -8,6 +8,7 @@ import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
+import { SplitPreviewDto } from './dto/split-preview.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { createSplitStrategy } from './split-strategies/split-strategy.factory';
 import {
@@ -66,6 +67,27 @@ export class ExpenseService {
       throw new NotFoundException('Expense not found');
     }
     return expense;
+  }
+
+  async previewSplit(dto: SplitPreviewDto) {
+    await this.assertParticipantUsersExist(
+      dto.participants.map((p) => p.userId),
+    );
+    const amount = new Prisma.Decimal(dto.amount);
+    const computed = createSplitStrategy(dto.splitType).compute(
+      amount,
+      dto.participants,
+    );
+
+    return {
+      amount: amount.toFixed(2),
+      splitType: dto.splitType,
+      participants: computed.map((c) => ({
+        userId: c.userId,
+        shareAmount: c.shareAmount.toFixed(2),
+        inputValue: c.inputValue ? c.inputValue.toFixed(2) : null,
+      })),
+    };
   }
 
   async create(ownerId: number, dto: CreateExpenseDto) {

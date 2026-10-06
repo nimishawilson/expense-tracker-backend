@@ -624,3 +624,103 @@ Authorization: Bearer {{authToken}}
 ### Balances for me — net should have moved toward zero by the settled amount (expect 200)
 GET {{baseUrl}}/balances
 Authorization: Bearer {{authToken}}
+
+########################################
+# EXPENSES — POST /expenses/split-preview (no data saved)
+########################################
+
+### Preview an EQUAL split (expect 200, 50.01 / 50.00 — remainder cent allocated)
+POST {{baseUrl}}/expenses/split-preview
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 100.01,
+  "splitType": "EQUAL",
+  "participants": [
+    { "userId": {{authUserId}} },
+    { "userId": {{bobId}} }
+  ]
+}
+
+### Preview a PERCENTAGE split (expect 200, 60.00 / 40.00)
+POST {{baseUrl}}/expenses/split-preview
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 100.00,
+  "splitType": "PERCENTAGE",
+  "participants": [
+    { "userId": {{authUserId}}, "value": 60 },
+    { "userId": {{bobId}}, "value": 40 }
+  ]
+}
+
+### Preview a SHARES split (expect 200)
+POST {{baseUrl}}/expenses/split-preview
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 90.00,
+  "splitType": "SHARES",
+  "participants": [
+    { "userId": {{authUserId}}, "value": 2 },
+    { "userId": {{bobId}}, "value": 1 }
+  ]
+}
+
+### Preview an EXACT split that doesn't sum to the total (expect 400)
+POST {{baseUrl}}/expenses/split-preview
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 50.00,
+  "splitType": "EXACT",
+  "participants": [
+    { "userId": {{authUserId}}, "value": 10 },
+    { "userId": {{bobId}}, "value": 10 }
+  ]
+}
+
+### Preview with a nonexistent participant (expect 400)
+POST {{baseUrl}}/expenses/split-preview
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "amount": 50.00,
+  "splitType": "EQUAL",
+  "participants": [{ "userId": 999999 }]
+}
+
+### Preview without a token (expect 401)
+POST {{baseUrl}}/expenses/split-preview
+Content-Type: {{contentType}}
+
+{
+  "amount": 50.00,
+  "splitType": "EQUAL",
+  "participants": [{ "userId": 1 }]
+}
+
+########################################
+# DASHBOARD — GET /dashboard/summary
+########################################
+
+### Total spent for the current month in my time zone (expect 200)
+GET {{baseUrl}}/dashboard/summary
+Authorization: Bearer {{authToken}}
+
+### Total spent for a specific month (expect 200)
+GET {{baseUrl}}/dashboard/summary?month=2026-09
+Authorization: Bearer {{authToken}}
+
+### Invalid month format (expect 400)
+GET {{baseUrl}}/dashboard/summary?month=2026-13
+Authorization: Bearer {{authToken}}
+
+### Dashboard summary without a token (expect 401)
+GET {{baseUrl}}/dashboard/summary

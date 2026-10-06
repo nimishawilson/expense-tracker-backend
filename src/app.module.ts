@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { BalanceModule } from './balance/balance.module';
 import { CategoryModule } from './category/category.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { ExpenseModule } from './expense/expense.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SettlementModule } from './settlement/settlement.module';
@@ -20,6 +21,7 @@ import { UserModule } from './user/user.module';
     ExpenseModule,
     SettlementModule,
     BalanceModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

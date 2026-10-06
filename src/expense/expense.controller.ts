@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
@@ -27,6 +28,8 @@ import { MessageResponseDto } from '../common/dto/message-response.dto';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
 import { ExpenseResponseDto } from './dto/expense-response.dto';
+import { SplitPreviewDto } from './dto/split-preview.dto';
+import { SplitPreviewResponseDto } from './dto/split-preview-response.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { ExpenseService } from './expense.service';
 
@@ -53,6 +56,20 @@ export class ExpenseController {
   })
   create(@Req() req: AuthenticatedRequest, @Body() dto: CreateExpenseDto) {
     return this.expenseService.create(req.user.id, dto);
+  }
+
+  @Post('split-preview')
+  @HttpCode(200)
+  @ApiOperation({
+    summary:
+      'Preview split shares without saving, using the same rules as create/update',
+  })
+  @ApiOkResponse({ type: SplitPreviewResponseDto })
+  @ApiBadRequestResponse({
+    description: 'Validation, unknown participant, or split-calculation error',
+  })
+  previewSplit(@Body() dto: SplitPreviewDto) {
+    return this.expenseService.previewSplit(dto);
   }
 
   @Get()
