@@ -258,6 +258,110 @@ Content-Type: {{contentType}}
 @bobId = {{loginBob.response.body.$.user.id}}
 
 ########################################
+# FRIENDS — requests (Bob must be a friend before he can join expenses)
+# Emails are caught by Mailpit: http://localhost:8025 (docker compose up -d)
+########################################
+
+### Send a friend request to Bob (expect 201, status PENDING; email sent)
+# @name sendBobRequest
+POST {{baseUrl}}/friend-requests
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "bob@example.com"
+}
+
+###
+
+@bobRequestId = {{sendBobRequest.response.body.$.id}}
+
+### Same request to an address with no account — identical response shape (expect 201)
+POST {{baseUrl}}/friend-requests
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "nobody-here@example.com"
+}
+
+### Send a request to myself (expect 400)
+POST {{baseUrl}}/friend-requests
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "jane@example.com"
+}
+
+### Invalid email (expect 400)
+POST {{baseUrl}}/friend-requests
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "not-an-email"
+}
+
+### Repeat the same request (expect 201, idempotent — returns the existing request, no new email)
+POST {{baseUrl}}/friend-requests
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "bob@example.com"
+}
+
+### My outgoing requests (expect 200)
+GET {{baseUrl}}/friend-requests?direction=outgoing
+Authorization: Bearer {{authToken}}
+
+### Bob's incoming inbox / badge count — default is incoming + pending (expect 200, includes sender)
+GET {{baseUrl}}/friend-requests
+Authorization: Bearer {{bobToken}}
+
+### Resend immediately (expect 429, one-hour cooldown)
+POST {{baseUrl}}/friend-requests/{{bobRequestId}}/resend
+Authorization: Bearer {{authToken}}
+
+### Alice tries to accept her own request (expect 404, only the recipient can)
+POST {{baseUrl}}/friend-requests/{{bobRequestId}}/accept
+Authorization: Bearer {{authToken}}
+
+### Bob accepts in the app (expect 200, status ACCEPTED)
+POST {{baseUrl}}/friend-requests/{{bobRequestId}}/accept
+Authorization: Bearer {{bobToken}}
+
+### Accept again (expect 409, already accepted)
+POST {{baseUrl}}/friend-requests/{{bobRequestId}}/accept
+Authorization: Bearer {{bobToken}}
+
+### Request someone who is already a friend (expect 409)
+POST {{baseUrl}}/friend-requests
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "bob@example.com"
+}
+
+########################################
+# FRIENDS — GET /friends
+########################################
+
+### My friends (expect 200, includes Bob)
+GET {{baseUrl}}/friends
+Authorization: Bearer {{authToken}}
+
+### Search my friends by name or email fragment (expect 200)
+GET {{baseUrl}}/friends?search=bo
+Authorization: Bearer {{authToken}}
+
+### Bob's friends — the friendship is mutual (expect 200, includes Jane)
+GET {{baseUrl}}/friends
+Authorization: Bearer {{bobToken}}
+
+########################################
 # CATEGORIES — POST /categories
 ########################################
 
@@ -724,3 +828,123 @@ Authorization: Bearer {{authToken}}
 
 ### Dashboard summary without a token (expect 401)
 GET {{baseUrl}}/dashboard/summary
+
+########################################
+# FRIENDS — email link flow (token endpoints are public)
+# Register a third user, send a request, then copy the token from the link in
+# the Mailpit email (…/friends/respond?token=<TOKEN>) into @friendToken below.
+########################################
+
+### Register Carol (expect 201)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Carol Jones",
+  "email": "carol@example.com",
+  "password": "secret1",
+  "confirmPassword": "secret1"
+}
+
+### Send Carol a request (expect 201)
+POST {{baseUrl}}/friend-requests
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "carol@example.com"
+}
+
+### Paste the token from the Mailpit email here
+@friendToken = PASTE_TOKEN_FROM_EMAIL
+
+### Landing page details (expect 200: senderName, status, expired, recipientRegistered)
+POST {{baseUrl}}/friend-requests/token/details
+Content-Type: {{contentType}}
+
+{
+  "token": "{{friendToken}}"
+}
+
+### Unknown token (expect 404)
+POST {{baseUrl}}/friend-requests/token/details
+Content-Type: {{contentType}}
+
+{
+  "token": "not-a-real-token"
+}
+
+### Accept from the email link without logging in (expect 200 ACCEPTED; 409 REGISTRATION_REQUIRED if the email has no account)
+POST {{baseUrl}}/friend-requests/token/accept
+Content-Type: {{contentType}}
+
+{
+  "token": "{{friendToken}}"
+}
+
+### Decline with the same token afterwards (expect 409, already accepted)
+POST {{baseUrl}}/friend-requests/token/reject
+Content-Type: {{contentType}}
+
+{
+  "token": "{{friendToken}}"
+}
+
+########################################
+# FRIENDS — only friends can join expenses; unfriending
+########################################
+
+### Login as Carol (expect 200)
+# @name loginCarol
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "carol@example.com",
+  "password": "secret1"
+}
+
+###
+
+@carolId = {{loginCarol.response.body.$.user.id}}
+
+### Split with a user who is not a friend (expect 400, generic "not found or not in your friends list")
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{bobToken}}
+
+{
+  "amount": 30.00,
+  "description": "Not friends with Carol",
+  "date": "2026-09-22T00:00:00.000Z",
+  "categoryId": 1,
+  "splitType": "EQUAL",
+  "participants": [
+    { "userId": {{carolId}} }
+  ]
+}
+
+### Paid-by a user who is not a friend (expect 400)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{bobToken}}
+
+{
+  "amount": 30.00,
+  "description": "Paid by a stranger",
+  "date": "2026-09-22T00:00:00.000Z",
+  "categoryId": 1,
+  "paidById": {{carolId}}
+}
+
+### Cancel a request that was already accepted (expect 409; cancelling works only while PENDING)
+DELETE {{baseUrl}}/friend-requests/{{bobRequestId}}
+Authorization: Bearer {{authToken}}
+
+### Remove Carol as a friend (expect 200; past expenses and balances are kept)
+DELETE {{baseUrl}}/friends/{{carolId}}
+Authorization: Bearer {{authToken}}
+
+### Remove someone who isn't a friend (expect 404)
+DELETE {{baseUrl}}/friends/999999
+Authorization: Bearer {{authToken}}

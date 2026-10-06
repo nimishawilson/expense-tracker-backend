@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { SplitType } from '../../../generated/prisma/client';
+import { UserSummaryDto } from '../../common/dto/user-summary.dto';
+import { CategoryResponseDto } from '../../category/dto/category-response.dto';
 import { ExpenseParticipantResponseDto } from './expense-participant-response.dto';
 
 export class ExpenseResponseDto {
@@ -18,11 +20,20 @@ export class ExpenseResponseDto {
   @ApiProperty({ example: 3 })
   categoryId: number;
 
+  @ApiProperty({ type: CategoryResponseDto })
+  category: CategoryResponseDto;
+
   @ApiProperty({ example: 1 })
   ownerId: number;
 
+  @ApiProperty({ type: UserSummaryDto })
+  owner: UserSummaryDto;
+
   @ApiProperty({ example: 1 })
   paidById: number;
+
+  @ApiProperty({ type: UserSummaryDto })
+  paidBy: UserSummaryDto;
 
   @ApiPropertyOptional({ enum: SplitType, nullable: true })
   splitType: SplitType | null;

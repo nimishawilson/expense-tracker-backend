@@ -41,6 +41,12 @@ model User {
   settlementsSent Settlement[] @relation("SettlementFrom")
 
   settlementsReceived Settlement[] @relation("SettlementTo")
+
+  friendRequestsSent FriendRequest[]
+
+  friendships Friendship[] @relation("FriendshipOwner")
+
+  friendOf Friendship[] @relation("FriendshipFriend")
 }
 
 enum SplitType {
@@ -151,4 +157,60 @@ model Settlement {
 
   @@index([fromUserId])
   @@index([toUserId])
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+model FriendRequest {
+  id Int @id @default(autoincrement())
+
+  senderId Int
+
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  // Lower-case; the recipient may not have an account yet.
+  receiverEmail String
+
+  // SHA-256 of the emailed token; the raw token is never stored.
+  tokenHash String @unique
+
+  status FriendRequestStatus @default(PENDING)
+
+  expiresAt DateTime
+
+  lastSentAt DateTime
+
+  sendCount Int @default(1)
+
+  respondedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([senderId, receiverEmail])
+  @@index([receiverEmail, status])
+}
+
+// Symmetric: an accepted friendship is stored as two rows (A->B and B->A).
+model Friendship {
+  id Int @id @default(autoincrement())
+
+  userId Int
+
+  user User @relation("FriendshipOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  friendId Int
+
+  friend User @relation("FriendshipFriend", fields: [friendId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, friendId])
+  @@index([friendId])
 }

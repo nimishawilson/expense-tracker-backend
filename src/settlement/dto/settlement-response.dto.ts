@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { UserSummaryDto } from '../../common/dto/user-summary.dto';
 
 export class SettlementResponseDto {
   @ApiProperty({ example: 1 })
@@ -7,8 +8,14 @@ export class SettlementResponseDto {
   @ApiProperty({ example: 2 })
   fromUserId: number;
 
+  @ApiProperty({ type: UserSummaryDto })
+  fromUser: UserSummaryDto;
+
   @ApiProperty({ example: 1 })
   toUserId: number;
+
+  @ApiProperty({ type: UserSummaryDto })
+  toUser: UserSummaryDto;
 
   @ApiProperty({ example: '25.00' })
   amount: string;

@@ -1,10 +1,10 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
+import { FriendService } from '../friend/friend.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
@@ -16,11 +16,23 @@ import {
   SplitParticipantInput,
 } from './split-strategies/split-strategy.interface';
 
-const EXPENSE_INCLUDE = { category: true, participants: true } as const;
+const USER_NAME_SELECT = { select: { id: true, name: true } } as const;
+
+// Only id + name of other users are exposed (never email), so participants who
+// aren't friends with each other can still see who is on the expense.
+const EXPENSE_INCLUDE = {
+  category: true,
+  owner: USER_NAME_SELECT,
+  paidBy: USER_NAME_SELECT,
+  participants: { include: { user: USER_NAME_SELECT } },
+} as const;
 
 @Injectable()
 export class ExpenseService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly friends: FriendService,
+  ) {}
 
   private async assertCategoryVisible(categoryId: number, userId: number) {
     const category = await this.prisma.category.findUnique({
@@ -28,27 +40,6 @@ export class ExpenseService {
     });
     if (!category || (!category.isDefault && category.userId !== userId)) {
       throw new NotFoundException('Category not found');
-    }
-  }
-
-  private async assertUserExists(userId: number, label: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException(`${label} not found`);
-    }
-  }
-
-  private async assertParticipantUsersExist(userIds: number[]) {
-    const found = await this.prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: { id: true },
-    });
-    const foundIds = new Set(found.map((u) => u.id));
-    const missing = userIds.filter((id) => !foundIds.has(id));
-    if (missing.length > 0) {
-      throw new BadRequestException(
-        `Participant user(s) not found: ${missing.join(', ')}`,
-      );
     }
   }
 
@@ -69,8 +60,9 @@ export class ExpenseService {
     return expense;
   }
 
-  async previewSplit(dto: SplitPreviewDto) {
-    await this.assertParticipantUsersExist(
+  async previewSplit(userId: number, dto: SplitPreviewDto) {
+    await this.friends.assertCanUse(
+      userId,
       dto.participants.map((p) => p.userId),
     );
     const amount = new Prisma.Decimal(dto.amount);
@@ -94,14 +86,14 @@ export class ExpenseService {
     const paidById = dto.paidById ?? ownerId;
 
     await this.assertCategoryVisible(dto.categoryId, ownerId);
-    if (paidById !== ownerId) {
-      await this.assertUserExists(paidById, 'Paid-by user');
-    }
+    await this.friends.assertCanUse(ownerId, [
+      paidById,
+      ...(dto.participants ?? []).map((p) => p.userId),
+    ]);
 
     let computed: ComputedParticipantShare[] | undefined;
     if (dto.splitType) {
       const participants = dto.participants!;
-      await this.assertParticipantUsersExist(participants.map((p) => p.userId));
       const strategy = createSplitStrategy(dto.splitType);
       computed = strategy.compute(new Prisma.Decimal(dto.amount), participants);
     }
@@ -188,10 +180,18 @@ export class ExpenseService {
       await this.assertCategoryVisible(dto.categoryId, userId);
     }
 
-    const paidById = dto.paidById ?? expense.paidById;
-    if (dto.paidById !== undefined && dto.paidById !== expense.paidById) {
-      await this.assertUserExists(paidById, 'Paid-by user');
-    }
+    // Only newly introduced users must be friends, so editing an old expense
+    // keeps working after someone has been unfriended.
+    const knownIds = new Set([
+      expense.paidById,
+      ...expense.participants.map((p) => p.userId),
+    ]);
+    await this.friends.assertCanUse(
+      userId,
+      [dto.paidById, ...(dto.participants ?? []).map((p) => p.userId)].filter(
+        (id): id is number => id !== undefined && !knownIds.has(id),
+      ),
+    );
 
     const recalcNeeded =
       dto.amount !== undefined ||
@@ -209,9 +209,6 @@ export class ExpenseService {
           value: p.inputValue !== null ? Number(p.inputValue) : undefined,
         }));
 
-      await this.assertParticipantUsersExist(
-        effectiveParticipants.map((p) => p.userId),
-      );
       const strategy = createSplitStrategy(effectiveSplitType);
       computed = strategy.compute(
         new Prisma.Decimal(dto.amount ?? expense.amount),

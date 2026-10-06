@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { UserSummaryDto } from '../../common/dto/user-summary.dto';
 
 export class ExpenseParticipantResponseDto {
   @ApiProperty({ example: 1 })
@@ -6,6 +7,9 @@ export class ExpenseParticipantResponseDto {
 
   @ApiProperty({ example: 2 })
   userId: number;
+
+  @ApiProperty({ type: UserSummaryDto })
+  user: UserSummaryDto;
 
   @ApiProperty({
     example: '16.67',

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-NestJS backend for an expense tracker app. Very early stage (MVP scaffolding) — see `spec.md` for the full product specification (user management, expense CRUD with split strategies, balances, settlements). Only user registration/model groundwork exists so far; most of `spec.md` is not yet implemented.
+NestJS backend for an expense tracker app. MVP in progress — see `spec.md` for the full product specification (user management, expense CRUD with split strategies, balances, settlements, friends). Implemented: auth/profile, categories, expenses (split strategies + preview), balances, settlements, dashboard monthly summary, friends and friend requests.
 
 ## Commands
 
@@ -30,5 +30,8 @@ NestJS backend for an expense tracker app. Very early stage (MVP scaffolding) �
 - Standard NestJS module/controller/service structure, entry point `src/main.ts`
 - A global `ValidationPipe` (`whitelist`, `forbidNonWhitelisted`, `transform`) is applied in `main.ts` — DTOs should use `class-validator`/`class-transformer` decorators to define validation, and any new request payload needs a DTO for the pipe to enforce
 - Feature modules live under `src/<feature>/` (e.g. `src/user/`), each expected to have its own `dto/` subfolder
-- Prisma is the ORM; the `User` model (`id`, `name`, `email` unique, `password`, timestamps) is the only model defined so far. Passwords are hashed with `bcrypt` before storage
-- No auth (JWT/session) is wired up yet, despite being called for in `spec.md`
+- Prisma is the ORM (models: `User`, `Category`, `Expense`, `ExpenseParticipant`, `Settlement`, `FriendRequest`, `Friendship`). Passwords are hashed with `bcrypt` before storage
+- Auth is JWT (`JwtAuthGuard`, `req.user = {id, email}`); all feature routes except `/auth/*` and `/friend-requests/token/*` require it
+- Friends: `src/friend/` (request/accept via email link or in-app). Friendships are stored as two rows (A→B, B→A). Expense participants and `paidById` must be the owner or one of their friends (`FriendService.assertCanUse`); settlements are not restricted
+- Email: `src/mail/MailService` (nodemailer/SMTP, never throws). Local dev uses Mailpit from `docker-compose.yml` (UI http://localhost:8025). Env: `FRONTEND_URL`, `SMTP_*`, `MAIL_FROM`, `FRIEND_REQUEST_TTL_DAYS` (see `.env.example`)
+- `@nestjs/throttler` is registered in `AppModule` but applied only per endpoint (`UserThrottlerGuard` / `ThrottlerGuard`) on friend-request routes

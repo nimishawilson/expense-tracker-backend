@@ -26,6 +26,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MessageResponseDto } from '../common/dto/message-response.dto';
 import { CreateExpenseDto } from './dto/create-expense.dto';
+import { ExpenseListResponseDto } from './dto/expense-list-response.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
 import { ExpenseResponseDto } from './dto/expense-response.dto';
 import { SplitPreviewDto } from './dto/split-preview.dto';
@@ -50,7 +51,7 @@ export class ExpenseController {
     description: 'Expense created',
     type: ExpenseResponseDto,
   })
-  @ApiNotFoundResponse({ description: 'Category or paid-by user not found' })
+  @ApiNotFoundResponse({ description: 'Category not found' })
   @ApiBadRequestResponse({
     description: 'Validation or split-calculation error',
   })
@@ -68,13 +69,16 @@ export class ExpenseController {
   @ApiBadRequestResponse({
     description: 'Validation, unknown participant, or split-calculation error',
   })
-  previewSplit(@Body() dto: SplitPreviewDto) {
-    return this.expenseService.previewSplit(dto);
+  previewSplit(@Req() req: AuthenticatedRequest, @Body() dto: SplitPreviewDto) {
+    return this.expenseService.previewSplit(req.user.id, dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'List expenses the user owns or participates in' })
-  @ApiOkResponse({ description: 'Paginated expense list' })
+  @ApiOkResponse({
+    description: 'Paginated expense list',
+    type: ExpenseListResponseDto,
+  })
   findAll(@Req() req: AuthenticatedRequest, @Query() query: ExpenseQueryDto) {
     return this.expenseService.findAll(req.user.id, query);
   }

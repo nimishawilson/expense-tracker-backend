@@ -20,6 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateSettlementDto } from './dto/create-settlement.dto';
+import { SettlementListResponseDto } from './dto/settlement-list-response.dto';
 import { SettlementQueryDto } from './dto/settlement-query.dto';
 import { SettlementResponseDto } from './dto/settlement-response.dto';
 import { SettlementService } from './settlement.service';
@@ -52,7 +53,10 @@ export class SettlementController {
 
   @Get()
   @ApiOperation({ summary: 'List settlements the user is a party to' })
-  @ApiOkResponse({ description: 'Paginated settlement list' })
+  @ApiOkResponse({
+    description: 'Paginated settlement list',
+    type: SettlementListResponseDto,
+  })
   findAll(
     @Req() req: AuthenticatedRequest,
     @Query() query: SettlementQueryDto,

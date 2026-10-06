@@ -175,6 +175,7 @@ This module handles user identity, authentication, and profile management.
 * Passwords must be securely handled (hashed in backend)
 * Authentication handled via token/session (JWT recommended)
 * Frontend stores only authentication token (not sensitive data)
+* Outgoing email (SMTP) is required for friend requests (see 4.5)
 
 ---
 
@@ -200,11 +201,11 @@ User can:
 * Add description
 * Select category
 * Select date
-* Choose “Paid by” (default: self)
+* Choose “Paid by” (default: self; or any friend)
 
 #### Split Expense (Optional)
 
-* Add participants
+* Add participants (only from your friends list, see 4.5)
 * Select split type:
 
   * Equal
@@ -264,6 +265,39 @@ User can:
 
 ---
 
+### 4.5 Friends
+
+Only friends can be added to an expense as participants or “Paid by” (plus yourself).
+
+#### Add Friend (Friend Request)
+
+* Enter a friend’s email → sends a friend request
+* The recipient gets an email with a link to accept or decline
+* Works for emails with no account yet: they register with that email, then accept
+* The same response is returned whether or not the email has an account (no account disclosure)
+
+#### Respond to a Request
+
+* From the email link (no login needed), or in the app (incoming requests section with Accept / Reject)
+* Accepting makes the friendship mutual
+* Sender can view outgoing requests, cancel a pending one, and resend the email
+
+#### Request Rules
+
+* States: pending, accepted, rejected, cancelled, expired (after 7 days)
+* One request per pair; cannot add yourself; already-friends cannot be re-requested
+* If both people send each other a request, it is accepted automatically
+* A rejected request can be re-sent after 7 days; resend limited (1 hour cooldown, max 3 sends)
+* Rate limits apply to sending requests and to email-link responses
+
+#### Friends List
+
+* View friends, search by name/email
+* Remove a friend: past expenses, balances and settlements are kept; removed friends cannot be added to new expenses
+* Settlements are not restricted to friends
+
+---
+
 ## 5. Screens / UI Structure
 
 ### 5.1 Dashboard (Home)
@@ -276,6 +310,7 @@ Components:
 * You owe
 * You are owed
 * Recent expenses list
+* Pending friend requests indicator (links to 5.8)
 
 ---
 
@@ -307,7 +342,8 @@ Sections:
 
 #### Split Section (Optional)
 
-* Add participants
+* Add participants (friends picker with search, plus inline “Add friend by email”)
+* Empty state when no friends: “Add a friend to split this expense”
 * Select split type
 * Dynamic split input UI
 * Preview of split values
@@ -353,12 +389,38 @@ Components:
 
 ---
 
+### 5.7 Friends Screen
+
+**Purpose:** Manage friends
+
+Components:
+
+* Friends list with search
+* “Add friend” (email) action
+* Remove friend action
+
+---
+
+### 5.8 Friend Requests Screen
+
+**Purpose:** Respond to and track requests
+
+Components:
+
+* Incoming requests: sender, Accept / Reject (also drives a pending badge)
+* Outgoing requests: status, Cancel, Resend
+* Email landing page: shows sender with Accept / Decline; if the email has no account, routes to Registration with the email prefilled
+
+---
+
 ## 6. Data Concepts (High-Level)
 
 * Expense = financial event
 * Participants = involved users
 * Shares = calculated owed amounts
 * Settlement = debt resolution
+* Friend = mutual, accepted connection between two users
+* Friend request = pending invitation sent by email, expires after 7 days
 * Balance = derived from shares - settlements
 
 ---
@@ -378,10 +440,11 @@ Components:
 ## 8. Non-Goals (MVP)
 
 * Group-based expenses
-* Notifications
+* Push notifications / reminders (friend-request emails and the in-app requests section are in scope)
 * OCR / receipt scanning
 * AI insights
 * Multi-currency support
+* Phone-contacts import, invite links / placeholder (non-registered) participants, blocking users
 * Offline mode
 
 ---
@@ -389,6 +452,7 @@ Components:
 ## 9. Future Scope (High-Level)
 
 * Group expense management
+* Email verification; invites for unregistered participants; blocking
 * Advanced split strategies
 * Balance caching / denormalization
 * Notifications and reminders
@@ -405,6 +469,7 @@ Components:
 * Split logic
 * Balance calculation
 * Settlement
+* Friends & friend requests
 
 ### Phase 2
 

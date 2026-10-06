@@ -9,6 +9,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateSettlementDto } from './dto/create-settlement.dto';
 import { SettlementQueryDto } from './dto/settlement-query.dto';
 
+const USER_NAME_SELECT = { select: { id: true, name: true } } as const;
+
+// id + name only: the other party's email is never exposed here.
+const SETTLEMENT_INCLUDE = {
+  fromUser: USER_NAME_SELECT,
+  toUser: USER_NAME_SELECT,
+} as const;
+
 @Injectable()
 export class SettlementService {
   constructor(private readonly prisma: PrismaService) {}
@@ -38,6 +46,7 @@ export class SettlementService {
         amount: dto.amount,
         note: dto.note ?? null,
       },
+      include: SETTLEMENT_INCLUDE,
     });
   }
 
@@ -70,6 +79,7 @@ export class SettlementService {
     const [data, total] = await this.prisma.$transaction([
       this.prisma.settlement.findMany({
         where,
+        include: SETTLEMENT_INCLUDE,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
