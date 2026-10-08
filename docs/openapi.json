@@ -1,0 +1,2466 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User successfully registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email is already registered"
+          }
+        },
+        "summary": "Register a new user account",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email or password"
+          }
+        },
+        "summary": "Log in with email and password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "UserController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get the authenticated user's profile",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "UserController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update the authenticated user's profile",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/me/password": {
+      "patch": {
+        "operationId": "UserController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Current password is incorrect"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Change the authenticated user's password",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/categories": {
+      "post": {
+        "operationId": "CategoryController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A category with this name already exists"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create a custom category",
+        "tags": [
+          "categories"
+        ]
+      },
+      "get": {
+        "operationId": "CategoryController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Category list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List default and owned custom categories",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/categories/{id}": {
+      "get": {
+        "operationId": "CategoryController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found or not visible to this user"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get a single category",
+        "tags": [
+          "categories"
+        ]
+      },
+      "patch": {
+        "operationId": "CategoryController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default categories cannot be modified"
+          },
+          "404": {
+            "description": "Category not found or not visible to this user"
+          },
+          "409": {
+            "description": "A category with this name already exists"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update an owned custom category",
+        "tags": [
+          "categories"
+        ]
+      },
+      "delete": {
+        "operationId": "CategoryController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default categories cannot be deleted"
+          },
+          "404": {
+            "description": "Category not found or not visible to this user"
+          },
+          "409": {
+            "description": "Category is used by existing expenses"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete an owned custom category",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/expenses": {
+      "post": {
+        "operationId": "ExpenseController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExpenseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Expense created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or split-calculation error"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create a new expense, optionally split among participants",
+        "tags": [
+          "expenses"
+        ]
+      },
+      "get": {
+        "operationId": "ExpenseController_findAll",
+        "parameters": [
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-09-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-09-30T23:59:59.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 3,
+              "type": "number"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 7,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated expense list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List expenses the user owns or participates in",
+        "tags": [
+          "expenses"
+        ]
+      }
+    },
+    "/expenses/split-preview": {
+      "post": {
+        "operationId": "ExpenseController_previewSplit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SplitPreviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SplitPreviewResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, unknown participant, or split-calculation error"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Preview split shares without saving, using the same rules as create/update",
+        "tags": [
+          "expenses"
+        ]
+      }
+    },
+    "/expenses/{id}": {
+      "get": {
+        "operationId": "ExpenseController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Expense not found or not visible to this user"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get a single expense (owner or participant only)",
+        "tags": [
+          "expenses"
+        ]
+      },
+      "patch": {
+        "operationId": "ExpenseController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateExpenseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or split-calculation error"
+          },
+          "403": {
+            "description": "Only the owner may edit"
+          },
+          "404": {
+            "description": "Expense not found or not visible to this user"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update an expense (owner only); recalculates splits when needed",
+        "tags": [
+          "expenses"
+        ]
+      },
+      "delete": {
+        "operationId": "ExpenseController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the owner may delete"
+          },
+          "404": {
+            "description": "Expense not found or not visible to this user"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete an expense (owner only)",
+        "tags": [
+          "expenses"
+        ]
+      }
+    },
+    "/friend-requests/token/details": {
+      "post": {
+        "operationId": "FriendRequestTokenController_details",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FriendTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestTokenDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown token"
+          }
+        },
+        "summary": "Show who sent the request, for the email landing page (public)",
+        "tags": [
+          "friend-requests"
+        ]
+      }
+    },
+    "/friend-requests/token/accept": {
+      "post": {
+        "operationId": "FriendRequestTokenController_accept",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FriendTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown token"
+          },
+          "409": {
+            "description": "Already responded, or code REGISTRATION_REQUIRED when the email has no account yet"
+          },
+          "410": {
+            "description": "Request expired"
+          }
+        },
+        "summary": "Accept a request from the email link (public)",
+        "tags": [
+          "friend-requests"
+        ]
+      }
+    },
+    "/friend-requests/token/reject": {
+      "post": {
+        "operationId": "FriendRequestTokenController_reject",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FriendTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown token"
+          },
+          "409": {
+            "description": "Already responded"
+          },
+          "410": {
+            "description": "Request expired"
+          }
+        },
+        "summary": "Decline a request from the email link (public)",
+        "tags": [
+          "friend-requests"
+        ]
+      }
+    },
+    "/friend-requests": {
+      "post": {
+        "operationId": "FriendRequestController_send",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendFriendRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid email or request to self"
+          },
+          "409": {
+            "description": "Already friends, or declined recently"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Send a friend request by email. The response is identical whether or not the email has an account.",
+        "tags": [
+          "friend-requests"
+        ]
+      },
+      "get": {
+        "operationId": "FriendRequestController_list",
+        "parameters": [
+          {
+            "name": "direction",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "incoming",
+              "type": "string",
+              "enum": [
+                "incoming",
+                "outgoing"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Defaults to PENDING for incoming requests (expired ones are hidden) and to all statuses for outgoing",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ACCEPTED",
+                "REJECTED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List friend requests: incoming (default, pending) for the in-app inbox, or outgoing",
+        "tags": [
+          "friend-requests"
+        ]
+      }
+    },
+    "/friend-requests/{id}/accept": {
+      "post": {
+        "operationId": "FriendRequestController_accept",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not an incoming request of yours"
+          },
+          "409": {
+            "description": "Already responded"
+          },
+          "410": {
+            "description": "Request expired"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Accept an incoming request",
+        "tags": [
+          "friend-requests"
+        ]
+      }
+    },
+    "/friend-requests/{id}/reject": {
+      "post": {
+        "operationId": "FriendRequestController_reject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not an incoming request of yours"
+          },
+          "409": {
+            "description": "Already responded"
+          },
+          "410": {
+            "description": "Request expired"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Reject an incoming request",
+        "tags": [
+          "friend-requests"
+        ]
+      }
+    },
+    "/friend-requests/{id}/resend": {
+      "post": {
+        "operationId": "FriendRequestController_resend",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not a request you sent"
+          },
+          "409": {
+            "description": "Request is no longer pending"
+          },
+          "429": {
+            "description": "Cooldown or send limit reached"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Resend the email for a pending request you sent (new link, fresh expiry)",
+        "tags": [
+          "friend-requests"
+        ]
+      }
+    },
+    "/friend-requests/{id}": {
+      "delete": {
+        "operationId": "FriendRequestController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not a request you sent"
+          },
+          "409": {
+            "description": "Request is no longer pending"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Cancel a pending request you sent",
+        "tags": [
+          "friend-requests"
+        ]
+      }
+    },
+    "/friends": {
+      "get": {
+        "operationId": "FriendController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive match on friend name or email",
+            "schema": {
+              "example": "bo",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List my friends, optionally filtered by name/email (feeds the participant and paid-by pickers)",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/friends/{friendId}": {
+      "delete": {
+        "operationId": "FriendController_remove",
+        "parameters": [
+          {
+            "name": "friendId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not a friend"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Remove a friend. Existing expenses, balances and settlements are kept.",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/settlements": {
+      "post": {
+        "operationId": "SettlementController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSettlementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Settlement recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettlementResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "fromUserId and toUserId must differ, or invalid amount"
+          },
+          "403": {
+            "description": "You must be a party to this settlement"
+          },
+          "404": {
+            "description": "From or to user not found"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Record a settlement between two users",
+        "tags": [
+          "settlements"
+        ]
+      },
+      "get": {
+        "operationId": "SettlementController_findAll",
+        "parameters": [
+          {
+            "name": "counterpartUserId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 7,
+              "type": "number"
+            }
+          },
+          {
+            "name": "fromDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-09-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-09-30T23:59:59.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated settlement list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettlementListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List settlements the user is a party to",
+        "tags": [
+          "settlements"
+        ]
+      }
+    },
+    "/balances": {
+      "get": {
+        "operationId": "BalanceController_getBalances",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalancesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get the current user's balances: who they owe and who owes them",
+        "tags": [
+          "balances"
+        ]
+      }
+    },
+    "/dashboard/summary": {
+      "get": {
+        "operationId": "DashboardController_getSummary",
+        "parameters": [
+          {
+            "name": "month",
+            "required": false,
+            "in": "query",
+            "description": "Month to summarise as YYYY-MM, interpreted in the user time zone. Defaults to the current month.",
+            "schema": {
+              "example": "2026-09",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSummaryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get the user's total spent for a month (defaults to the current month)",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Expense Tracker API",
+    "description": "API documentation for the Expense Tracker backend",
+    "version": "0.0.1",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Jane Doe",
+            "description": "Full name, letters and spaces only",
+            "minLength": 2
+          },
+          "email": {
+            "type": "string",
+            "example": "jane@example.com",
+            "description": "Valid, unique email address"
+          },
+          "password": {
+            "type": "string",
+            "example": "Secret123",
+            "description": "Password, minimum 6 characters",
+            "minLength": 6
+          },
+          "confirmPassword": {
+            "type": "string",
+            "example": "Secret123",
+            "description": "Must match password"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password",
+          "confirmPassword"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1,
+            "description": "Unique identifier of the user"
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe",
+            "description": "User's full name"
+          },
+          "email": {
+            "type": "string",
+            "example": "jane@example.com",
+            "description": "User's email address"
+          },
+          "defaultCurrency": {
+            "type": "string",
+            "example": "USD",
+            "description": "3-letter ISO currency code"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "UTC",
+            "description": "User's IANA time zone"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z",
+            "description": "Account creation timestamp"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-20T08:12:00.000Z",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "defaultCurrency",
+          "timeZone",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "jane@example.com",
+            "description": "Registered email address"
+          },
+          "password": {
+            "type": "string",
+            "example": "Secret123",
+            "description": "Account password"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "description": "JWT access token"
+          },
+          "user": {
+            "description": "Authenticated user profile",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "user"
+        ]
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Jane Doe",
+            "description": "Full name, letters and spaces only",
+            "minLength": 2
+          },
+          "defaultCurrency": {
+            "type": "string",
+            "example": "EUR",
+            "description": "3-letter ISO currency code"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/London",
+            "description": "IANA time zone identifier"
+          }
+        }
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "OldSecret123",
+            "description": "User's current password"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "NewSecret456",
+            "description": "New password, minimum 6 characters",
+            "minLength": 6
+          },
+          "confirmNewPassword": {
+            "type": "string",
+            "example": "NewSecret456",
+            "description": "Must match newPassword"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword",
+          "confirmNewPassword"
+        ]
+      },
+      "MessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Password updated successfully",
+            "description": "Human-readable result message"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Groceries"
+          },
+          "icon": {
+            "type": "string",
+            "example": "🛒",
+            "description": "Optional icon/emoji identifier"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Groceries"
+          },
+          "icon": {
+            "type": "object",
+            "example": "🛒",
+            "nullable": true
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": false
+          },
+          "userId": {
+            "type": "object",
+            "example": 1,
+            "nullable": true,
+            "description": "Owning user id; null for default/global categories"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-09-20T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-09-20T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isDefault",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Groceries"
+          },
+          "icon": {
+            "type": "string",
+            "example": "🛒",
+            "description": "Optional icon/emoji identifier"
+          }
+        }
+      },
+      "ExpenseParticipantInputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "example": 2,
+            "description": "User id of the participant"
+          },
+          "value": {
+            "type": "number",
+            "example": 25,
+            "description": "Percentage (PERCENTAGE split), exact amount (EXACT split), or share weight (SHARES split). Must be omitted for EQUAL."
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "CreateExpenseDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 49.99
+          },
+          "description": {
+            "type": "string",
+            "example": "Team lunch"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-09-20T00:00:00.000Z"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 3,
+            "description": "Id of a default or owned custom category"
+          },
+          "paidById": {
+            "type": "number",
+            "example": 5,
+            "description": "Who paid; defaults to the authenticated user"
+          },
+          "splitType": {
+            "type": "string",
+            "enum": [
+              "EQUAL",
+              "PERCENTAGE",
+              "EXACT",
+              "SHARES"
+            ],
+            "example": "EQUAL"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseParticipantInputDto"
+            }
+          }
+        },
+        "required": [
+          "amount",
+          "description",
+          "date",
+          "categoryId"
+        ]
+      },
+      "UserSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 2
+          },
+          "name": {
+            "type": "string",
+            "example": "Bob Smith"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "ExpenseParticipantResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "userId": {
+            "type": "number",
+            "example": 2
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserSummaryDto"
+          },
+          "shareAmount": {
+            "type": "string",
+            "example": "16.67",
+            "description": "Computed amount owed by this participant"
+          },
+          "inputValue": {
+            "type": "object",
+            "example": "33.33",
+            "description": "Raw input the share was derived from (percentage, exact amount, or share weight); null for EQUAL",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "user",
+          "shareAmount"
+        ]
+      },
+      "ExpenseResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "amount": {
+            "type": "string",
+            "example": "49.99"
+          },
+          "description": {
+            "type": "string",
+            "example": "Team lunch"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-09-20T00:00:00.000Z"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 3
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategoryResponseDto"
+          },
+          "ownerId": {
+            "type": "number",
+            "example": 1
+          },
+          "owner": {
+            "$ref": "#/components/schemas/UserSummaryDto"
+          },
+          "paidById": {
+            "type": "number",
+            "example": 1
+          },
+          "paidBy": {
+            "$ref": "#/components/schemas/UserSummaryDto"
+          },
+          "splitType": {
+            "type": "string",
+            "enum": [
+              "EQUAL",
+              "PERCENTAGE",
+              "EXACT",
+              "SHARES"
+            ],
+            "nullable": true
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseParticipantResponseDto"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-09-20T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-09-20T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "amount",
+          "description",
+          "date",
+          "categoryId",
+          "category",
+          "ownerId",
+          "owner",
+          "paidById",
+          "paidBy",
+          "participants",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SplitPreviewDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "splitType": {
+            "type": "string",
+            "enum": [
+              "EQUAL",
+              "PERCENTAGE",
+              "EXACT",
+              "SHARES"
+            ],
+            "example": "PERCENTAGE"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseParticipantInputDto"
+            }
+          }
+        },
+        "required": [
+          "amount",
+          "splitType",
+          "participants"
+        ]
+      },
+      "SplitPreviewParticipantDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "example": 2
+          },
+          "shareAmount": {
+            "type": "string",
+            "example": "60.00",
+            "description": "Amount this participant would owe"
+          },
+          "inputValue": {
+            "type": "object",
+            "example": "60.00",
+            "description": "Raw input the share was derived from (percentage, exact amount, or share weight); null for EQUAL",
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "shareAmount"
+        ]
+      },
+      "SplitPreviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string",
+            "example": "100.00"
+          },
+          "splitType": {
+            "type": "string",
+            "enum": [
+              "EQUAL",
+              "PERCENTAGE",
+              "EXACT",
+              "SHARES"
+            ]
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SplitPreviewParticipantDto"
+            }
+          }
+        },
+        "required": [
+          "amount",
+          "splitType",
+          "participants"
+        ]
+      },
+      "ExpenseListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseResponseDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 42,
+            "description": "Total matching expenses"
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "UpdateExpenseDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 49.99
+          },
+          "description": {
+            "type": "string",
+            "example": "Team lunch"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-09-20T00:00:00.000Z"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 3,
+            "description": "Id of a default or owned custom category"
+          },
+          "paidById": {
+            "type": "number",
+            "example": 5,
+            "description": "Who paid for the expense"
+          },
+          "splitType": {
+            "type": "string",
+            "enum": [
+              "EQUAL",
+              "PERCENTAGE",
+              "EXACT",
+              "SHARES"
+            ],
+            "example": "EQUAL"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseParticipantInputDto"
+            }
+          }
+        }
+      },
+      "FriendTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Token from the friend request email link"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "FriendRequestTokenDetailsDto": {
+        "type": "object",
+        "properties": {
+          "senderName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "receiverEmail": {
+            "type": "string",
+            "example": "bob@example.com"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "expired": {
+            "type": "boolean"
+          },
+          "recipientRegistered": {
+            "type": "boolean",
+            "description": "Whether an account exists for receiverEmail; if false, route the user to registration first"
+          }
+        },
+        "required": [
+          "senderName",
+          "receiverEmail",
+          "status",
+          "expired",
+          "recipientRegistered"
+        ]
+      },
+      "FriendRequestSenderDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "jane@example.com"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
+      },
+      "FriendRequestResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 4
+          },
+          "receiverEmail": {
+            "type": "string",
+            "example": "bob@example.com"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "expired": {
+            "type": "boolean",
+            "description": "True when the request is still PENDING but past its expiry"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastSentAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "sender": {
+            "description": "Included on incoming requests",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FriendRequestSenderDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "receiverEmail",
+          "status",
+          "expired",
+          "expiresAt",
+          "createdAt",
+          "lastSentAt"
+        ]
+      },
+      "SendFriendRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "bob@example.com",
+            "description": "Email of the person to add. They do not need an account yet; the response is the same either way."
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "FriendRequestListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FriendRequestResponseDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 2,
+            "description": "Total matches; use as a badge count"
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "FriendResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 3
+          },
+          "name": {
+            "type": "string",
+            "example": "Bob Smith"
+          },
+          "email": {
+            "type": "string",
+            "example": "bob@example.com"
+          },
+          "since": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the friendship was created"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "since"
+        ]
+      },
+      "FriendListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FriendResponseDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 1
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "CreateSettlementDto": {
+        "type": "object",
+        "properties": {
+          "fromUserId": {
+            "type": "number",
+            "example": 2,
+            "description": "User id the money is coming from"
+          },
+          "toUserId": {
+            "type": "number",
+            "example": 1,
+            "description": "User id the money is going to"
+          },
+          "amount": {
+            "type": "number",
+            "example": 25
+          },
+          "note": {
+            "type": "string",
+            "example": "Paid back via UPI"
+          }
+        },
+        "required": [
+          "fromUserId",
+          "toUserId",
+          "amount"
+        ]
+      },
+      "SettlementResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "fromUserId": {
+            "type": "number",
+            "example": 2
+          },
+          "fromUser": {
+            "$ref": "#/components/schemas/UserSummaryDto"
+          },
+          "toUserId": {
+            "type": "number",
+            "example": 1
+          },
+          "toUser": {
+            "$ref": "#/components/schemas/UserSummaryDto"
+          },
+          "amount": {
+            "type": "string",
+            "example": "25.00"
+          },
+          "note": {
+            "type": "object",
+            "example": "Paid back via UPI",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-09-20T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-09-20T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "fromUserId",
+          "fromUser",
+          "toUserId",
+          "toUser",
+          "amount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SettlementListResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettlementResponseDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 5,
+            "description": "Total matching settlements"
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "BalanceEntryDto": {
+        "type": "object",
+        "properties": {
+          "counterpartUserId": {
+            "type": "number",
+            "example": 3
+          },
+          "counterpartName": {
+            "type": "string",
+            "example": "Bob Smith"
+          },
+          "youOwe": {
+            "type": "string",
+            "example": "0.00",
+            "description": "Amount the current user owes this counterpart"
+          },
+          "youAreOwed": {
+            "type": "string",
+            "example": "15.50",
+            "description": "Amount this counterpart owes the current user"
+          },
+          "net": {
+            "type": "string",
+            "example": "15.50",
+            "description": "youAreOwed - youOwe; positive = counterpart owes you, negative = you owe them"
+          }
+        },
+        "required": [
+          "counterpartUserId",
+          "counterpartName",
+          "youOwe",
+          "youAreOwed",
+          "net"
+        ]
+      },
+      "BalancesResponseDto": {
+        "type": "object",
+        "properties": {
+          "totalYouOwe": {
+            "type": "string",
+            "example": "0.00"
+          },
+          "totalYouAreOwed": {
+            "type": "string",
+            "example": "15.50"
+          },
+          "netBalance": {
+            "type": "string",
+            "example": "15.50",
+            "description": "totalYouAreOwed - totalYouOwe"
+          },
+          "breakdown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BalanceEntryDto"
+            }
+          }
+        },
+        "required": [
+          "totalYouOwe",
+          "totalYouAreOwed",
+          "netBalance",
+          "breakdown"
+        ]
+      },
+      "DashboardSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "example": "2026-09"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Asia/Kolkata",
+            "description": "Time zone used to determine the month boundaries"
+          },
+          "from": {
+            "type": "string",
+            "example": "2026-08-31T18:30:00.000Z",
+            "description": "Inclusive start of the month"
+          },
+          "to": {
+            "type": "string",
+            "example": "2026-09-30T18:30:00.000Z",
+            "description": "Exclusive end of the month"
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD",
+            "description": "User's default currency"
+          },
+          "totalSpent": {
+            "type": "string",
+            "example": "182.50",
+            "description": "The user's own spend for the month: full amount of unsplit expenses they own, plus their share of split expenses they participate in"
+          }
+        },
+        "required": [
+          "month",
+          "timeZone",
+          "from",
+          "to",
+          "currency",
+          "totalSpent"
+        ]
+      }
+    }
+  }
+}
